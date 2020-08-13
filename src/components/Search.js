@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const Search = () => {
-  const [term, setTerm] = useState("programming");
+  const [term, setTerm] = useState("react");
   const [results, setResults] = useState([]);
 
   useEffect(() => {
@@ -19,17 +19,41 @@ const Search = () => {
 
       setResults(data.query.search);
     };
-    console.log(results);
 
-    search();
+    // On initial render of the page, show search results
+    // so we don't have a 800 ms delay from the set timeout
+    if (term && !results.length) {
+      search();
+    } else {
+      // Set timeout for search request so the
+      // API doesn't get called on every keypress
+      const timeoutId = setTimeout(() => {
+        if (term) {
+          search();
+        }
+      }, 800);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    }
   }, [term]);
 
   const renderedResults = results.map((result) => {
     return (
-      <div className="item" key={result.title}>
+      <div className="item" key={result.pageid}>
+        <div className="right floated content">
+          <a
+            className="ui button"
+            href={`https://en.wikipedia.org?curid=${result.pageid}`}
+            target="_blank"
+          >
+            Go to Article
+          </a>
+        </div>
         <div className="content">
           <div className="header">{result.title}</div>
-          {result.snippet}
+          <span dangerouslySetInnerHTML={{ __html: result.snippet }}></span>
         </div>
       </div>
     );
